@@ -52,3 +52,27 @@ function normalize(value: string, opts: Required<ExactOptions>): string {
 	if (opts.ignoreCase) v = v.toLowerCase()
 	return v
 }
+
+export type ContainsOptions = {
+	substring: string
+	ignoreCase?: boolean
+}
+
+export function contains(opts: ContainsOptions): Scorer {
+	const { substring, ignoreCase = false } = opts
+	if (!substring) throw new Error('contains: substring is required')
+	return {
+		name: 'contains',
+		async score({ output }) {
+			const haystack = ignoreCase ? output.toLowerCase() : output
+			const needle = ignoreCase ? substring.toLowerCase() : substring
+			const matched = haystack.includes(needle)
+			return {
+				value: matched ? 1 : 0,
+				passed: matched,
+				reason: matched ? undefined : `output does not contain ${JSON.stringify(substring)}`,
+			}
+		},
+	}
+}
+
