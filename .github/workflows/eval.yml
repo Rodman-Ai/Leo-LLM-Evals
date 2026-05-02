@@ -1,0 +1,71 @@
+name: Eval
+
+on:
+  pull_request:
+    paths:
+      - 'tests/**'
+      - 'lib/eval/**'
+      - 'app/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/eval.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run evals
+        id: eval
+        env:
+          # Defaults to mock provider so the action works on any fork without
+          # secrets. Forks with real provider keys configured will run against
+          # them automatically.
+          EVAL_MODEL: ${{ vars.EVAL_MODEL || 'mock:smart' }}
+          EVAL_SUITE: ${{ vars.EVAL_SUITE || 'code-review' }}
+          EVAL_THRESHOLD: ${{ vars.EVAL_THRESHOLD || '0.5' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          pnpm eval --suite="$EVAL_SUITE" --model="$EVAL_MODEL" --no-db --json > eval-results.ndjson
+          cat eval-results.ndjson
+
+      - name: Format PR comment
+        id: comment
+        if: always() && github.event_name == 'pull_request'
+        env:
+          EVAL_THRESHOLD: ${{ vars.EVAL_THRESHOLD || '0.5' }}
+          DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
+        run: node scripts/format-pr-comment.mjs eval-results.ndjson > pr-comment.md
+
+      - name: Post PR comment
+        if: always() && github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: evalbench
+          path: pr-comment.md
+
+      - name: Quality gate
+        if: always()
+        env:
+          EVAL_THRESHOLD: ${{ vars.EVAL_THRESHOLD || '0.5' }}
+        run: node scripts/quality-gate.mjs eval-results.ndjson

@@ -1,6 +1,92 @@
 import { and, desc, eq, sql } from 'drizzle-orm'
 import { getDb, schema } from '.'
 
+export type CostByDayRow = { day: string; costCents: number; runs: number }
+export type CostByModelRow = { model: string; costCents: number; runs: number }
+export type CostBySuiteRow = { suiteName: string; costCents: number; runs: number }
+export type TopRunRow = {
+	id: number
+	suiteName: string
+	model: string
+	costCents: number
+	startedAt: Date
+}
+
+export async function getCostBreakdown(): Promise<{
+	totalCents: number
+	byDay: CostByDayRow[]
+	byModel: CostByModelRow[]
+	bySuite: CostBySuiteRow[]
+	topRuns: TopRunRow[]
+}> {
+	const db = getDb()
+
+	const [byDay, byModel, bySuite, topRuns, totalRow] = await Promise.all([
+		db
+			.select({
+				day: sql<string>`to_char(${schema.runs.startedAt}, 'YYYY-MM-DD')`,
+				costCents: sql<number>`coalesce(sum(${schema.results.costCents}), 0)::int`,
+				runs: sql<number>`count(distinct ${schema.runs.id})::int`,
+			})
+			.from(schema.runs)
+			.leftJoin(schema.results, eq(schema.results.runId, schema.runs.id))
+			.where(eq(schema.runs.status, 'complete'))
+			.groupBy(sql`to_char(${schema.runs.startedAt}, 'YYYY-MM-DD')`)
+			.orderBy(sql`to_char(${schema.runs.startedAt}, 'YYYY-MM-DD')`),
+		db
+			.select({
+				model: schema.runs.model,
+				costCents: sql<number>`coalesce(sum(${schema.results.costCents}), 0)::int`,
+				runs: sql<number>`count(distinct ${schema.runs.id})::int`,
+			})
+			.from(schema.runs)
+			.leftJoin(schema.results, eq(schema.results.runId, schema.runs.id))
+			.where(eq(schema.runs.status, 'complete'))
+			.groupBy(schema.runs.model)
+			.orderBy(sql`coalesce(sum(${schema.results.costCents}), 0) desc`),
+		db
+			.select({
+				suiteName: schema.suites.name,
+				costCents: sql<number>`coalesce(sum(${schema.results.costCents}), 0)::int`,
+				runs: sql<number>`count(distinct ${schema.runs.id})::int`,
+			})
+			.from(schema.suites)
+			.leftJoin(schema.runs, eq(schema.runs.suiteId, schema.suites.id))
+			.leftJoin(schema.results, eq(schema.results.runId, schema.runs.id))
+			.where(eq(schema.runs.status, 'complete'))
+			.groupBy(schema.suites.name)
+			.orderBy(sql`coalesce(sum(${schema.results.costCents}), 0) desc`),
+		db
+			.select({
+				id: schema.runs.id,
+				suiteName: schema.suites.name,
+				model: schema.runs.model,
+				costCents: sql<number>`coalesce(sum(${schema.results.costCents}), 0)::int`,
+				startedAt: schema.runs.startedAt,
+			})
+			.from(schema.runs)
+			.innerJoin(schema.suites, eq(schema.suites.id, schema.runs.suiteId))
+			.leftJoin(schema.results, eq(schema.results.runId, schema.runs.id))
+			.where(eq(schema.runs.status, 'complete'))
+			.groupBy(schema.runs.id, schema.suites.name)
+			.orderBy(sql`coalesce(sum(${schema.results.costCents}), 0) desc`)
+			.limit(10),
+		db
+			.select({
+				totalCents: sql<number>`coalesce(sum(${schema.results.costCents}), 0)::int`,
+			})
+			.from(schema.results),
+	])
+
+	return {
+		totalCents: totalRow[0]?.totalCents ?? 0,
+		byDay,
+		byModel,
+		bySuite,
+		topRuns,
+	}
+}
+
 export type RunSummaryRow = {
 	id: number
 	suiteId: number

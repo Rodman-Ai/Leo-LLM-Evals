@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getLeaderboard } from '@/lib/db/queries'
@@ -5,11 +6,21 @@ import { ModelTag } from '@/components/ModelTag'
 import { CostCell } from '@/components/CostCell'
 import { ScoreBar } from '@/components/ScoreBar'
 import { PassRateBars } from '@/components/charts/PassRateBars'
+import { EmbedSnippet } from '@/components/EmbedSnippet'
 import { formatDate, formatLatency, passTextClass } from '@/lib/format'
 
 export const revalidate = 3600
 
 type Params = Promise<{ name: string }>
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+	const { name } = await params
+	const decoded = decodeURIComponent(name)
+	return {
+		title: `${decoded} leaderboard · evalbench`,
+		description: `LLM model leaderboard for the ${decoded} suite. Pass rates, cost, latency.`,
+	}
+}
 
 export default async function LeaderboardPage({ params }: { params: Params }) {
 	const { name } = await params
@@ -113,6 +124,7 @@ export default async function LeaderboardPage({ params }: { params: Params }) {
 						</tbody>
 					</table>
 				</div>
+				<EmbedSnippet suite={data.suite.name} />
 				</div>
 			)}
 		</div>
