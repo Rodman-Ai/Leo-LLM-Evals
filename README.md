@@ -10,6 +10,20 @@ dashboard on top.
 > `/runs/[id]`). Multi-provider, judges, comparison, and CI come in Weekends
 > 2–3. See [`CLAUDE.md`](./CLAUDE.md) for the full plan.
 
+## Seed the deployed app without local tooling
+
+If the dashboard is deployed but empty (no runs yet), and you don't want to
+install Node/pnpm locally, hit the built-in seed endpoint:
+
+1. In Vercel → Settings → Environment Variables, add `SEED_TOKEN` (random
+   ~48-char hex string) to Production. Redeploy once.
+2. Visit `https://<your-url>/api/seed?token=<that-token>` in a browser.
+3. Wait ~30 seconds. You'll see a JSON response listing the seeded runs.
+4. Refresh the dashboard — it's now populated.
+
+The endpoint is gated by `SEED_TOKEN` (timing-safe comparison), runs only the
+zero-cost `mock:*` providers, and is idempotent — safe to hit multiple times.
+
 ## Demo mode (no API keys needed)
 
 Try the dashboard end-to-end without an OpenAI / Anthropic / Google account.
