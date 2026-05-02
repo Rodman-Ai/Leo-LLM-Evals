@@ -10,6 +10,34 @@ dashboard on top.
 > `/runs/[id]`). Multi-provider, judges, comparison, and CI come in Weekends
 > 2–3. See [`CLAUDE.md`](./CLAUDE.md) for the full plan.
 
+## Demo mode (no API keys needed)
+
+Try the dashboard end-to-end without an OpenAI / Anthropic / Google account.
+A built-in `mock:*` provider returns deterministic synthetic outputs at three
+quality tiers (`mock:smart`, `mock:medium`, `mock:weak`). All four mock models
+are listed in every suite, so the leaderboard renders realistically.
+
+```bash
+pnpm install
+
+# Option A — fully offline. No DB, no keys, instant feedback.
+pnpm eval --suite=toy --model=mock:smart --no-db
+
+# Option B — with a Neon database (free tier), so the dashboard is populated.
+# Only DATABASE_URL is needed; no provider keys.
+echo 'DATABASE_URL=postgres://...' > .env.local
+pnpm db:push
+pnpm db:seed                 # runs both suites against all mock models
+PUBLIC_DEMO_MODE=true pnpm dev
+```
+
+Visit `http://localhost:3000/leaderboard/code-review` to see the seeded
+leaderboard. Set `PUBLIC_DEMO_MODE=true` to surface a banner explaining that
+results are synthetic.
+
+`mock:*` models cost zero, return in 100–1200ms (simulated), and produce
+stable outputs for a given prompt — runs are reproducible without rate limits.
+
 ## Quickstart (local)
 
 ```bash

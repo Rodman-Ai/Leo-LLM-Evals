@@ -5,6 +5,10 @@ export const PRICING: Record<string, ModelPricing> = {
 	'anthropic:claude-haiku-4-5': { in: 1.0, out: 5.0 },
 	'openai:gpt-5': { in: 5.0, out: 15.0 },
 	'google:gemini-2.5-pro': { in: 1.25, out: 10.0 },
+	'mock:smart': { in: 0, out: 0 },
+	'mock:medium': { in: 0, out: 0 },
+	'mock:weak': { in: 0, out: 0 },
+	'mock:demo': { in: 0, out: 0 },
 }
 
 export function pricingFor(model: string): ModelPricing | null {

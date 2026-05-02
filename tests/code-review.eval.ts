@@ -443,6 +443,9 @@ export default defineSuite({
 		'anthropic:claude-opus-4-7',
 		'openai:gpt-5',
 		'google:gemini-2.5-pro',
+		'mock:smart',
+		'mock:medium',
+		'mock:weak',
 	],
 	prompt: ({ input }) => `You are evaluating a code review comment. Read the diff and the comment, then decide whether the comment correctly identifies a real, actionable issue with the code.
 

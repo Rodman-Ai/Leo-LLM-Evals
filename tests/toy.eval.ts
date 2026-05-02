@@ -4,7 +4,7 @@ export default defineSuite({
 	name: 'toy',
 	description: 'Smoke test — 5 trivially-answerable cases for the exact scorer',
 	tags: ['smoke'],
-	models: ['anthropic:claude-haiku-4-5'],
+	models: ['anthropic:claude-haiku-4-5', 'mock:smart', 'mock:medium', 'mock:weak'],
 	prompt: ({ input }) =>
 		`Answer with a single lowercase word and nothing else. No punctuation, no quotes, no explanation.\n\nQuestion: ${input}`,
 	concurrency: 5,

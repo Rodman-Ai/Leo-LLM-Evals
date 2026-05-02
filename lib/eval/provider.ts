@@ -3,8 +3,9 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { generateText, generateObject, type LanguageModel } from 'ai'
 import type { z } from 'zod'
+import { isMockModel, mockGenerate } from './mock'
 
-export type ProviderId = 'anthropic' | 'openai' | 'google'
+export type ProviderId = 'anthropic' | 'openai' | 'google' | 'mock'
 
 export type ParsedModel = {
 	provider: ProviderId
@@ -12,21 +13,19 @@ export type ParsedModel = {
 	full: string
 }
 
-const SUPPORTED: ProviderId[] = ['anthropic', 'openai', 'google']
+const SUPPORTED: ProviderId[] = ['anthropic', 'openai', 'google', 'mock']
 
 export function parseModel(full: string): ParsedModel {
 	const idx = full.indexOf(':')
 	if (idx === -1) {
 		throw new Error(
-			`Invalid model id "${full}" — expected "provider:model" (e.g. anthropic:claude-haiku-4-5, openai:gpt-5, google:gemini-2.5-pro)`,
+			`Invalid model id "${full}" — expected "provider:model" (e.g. anthropic:claude-haiku-4-5, mock:demo)`,
 		)
 	}
 	const provider = full.slice(0, idx) as ProviderId
 	const modelId = full.slice(idx + 1)
 	if (!SUPPORTED.includes(provider)) {
-		throw new Error(
-			`Provider "${provider}" not supported. Available: ${SUPPORTED.join(', ')}.`,
-		)
+		throw new Error(`Provider "${provider}" not supported. Available: ${SUPPORTED.join(', ')}.`)
 	}
 	return { provider, modelId, full }
 }
@@ -58,6 +57,9 @@ export type GenerateResult = {
 }
 
 export async function generate(model: string, prompt: string): Promise<GenerateResult> {
+	if (isMockModel(model)) {
+		return mockGenerate(model, prompt)
+	}
 	const parsed = parseModel(model)
 	const lm = buildModel(parsed)
 
@@ -85,6 +87,11 @@ export async function generateStructured<T>(
 	prompt: string,
 	schema: z.ZodType<T>,
 ): Promise<StructuredResult<T>> {
+	if (isMockModel(model)) {
+		throw new Error(
+			`mock provider doesn't support structured output yet — use a real provider for llmJudge in demo mode, or stub the judge in tests.`,
+		)
+	}
 	const parsed = parseModel(model)
 	const lm = buildModel(parsed)
 

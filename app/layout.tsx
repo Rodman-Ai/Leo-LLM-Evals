@@ -8,9 +8,16 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+	const demoMode = process.env.PUBLIC_DEMO_MODE === 'true'
 	return (
 		<html lang='en'>
 			<body className='min-h-screen antialiased'>
+				{demoMode && (
+					<div className='border-b border-border bg-yellow-500/10 px-6 py-2 text-center text-xs text-yellow-700 dark:text-yellow-300'>
+						Demo mode — runs are scored against synthetic <code>mock:*</code> models. No real
+						provider calls.
+					</div>
+				)}
 				<header className='border-b border-border'>
 					<nav className='mx-auto flex max-w-6xl items-center gap-6 px-6 py-4 text-sm'>
 						<Link href='/' className='font-semibold'>
