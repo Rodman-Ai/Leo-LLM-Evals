@@ -16,6 +16,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 						<Link href='/' className='font-semibold'>
 							evalbench
 						</Link>
+						<Link href='/suites' className='text-muted-foreground hover:text-foreground'>
+							Suites
+						</Link>
 						<Link href='/runs' className='text-muted-foreground hover:text-foreground'>
 							Runs
 						</Link>
