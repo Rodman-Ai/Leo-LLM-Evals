@@ -143,6 +143,22 @@ Next.js 15 (App Router) · TypeScript strict · Drizzle + Neon Postgres ·
 Vercel AI SDK · Tailwind + shadcn/ui · Recharts · Vitest · pnpm. The full
 locked table is in [`CLAUDE.md`](./CLAUDE.md) §2.
 
+## Documentation
+
+| Doc | What it covers |
+|---|---|
+| [docs/architecture.md](./docs/architecture.md) | Codebase tour, data flow, key abstractions |
+| [docs/writing-suites.md](./docs/writing-suites.md) | Defining `*.eval.ts` files |
+| [docs/scorers.md](./docs/scorers.md) | Built-in scorers + writing custom ones |
+| [docs/cli.md](./docs/cli.md) | `pnpm eval` reference |
+| [docs/api.md](./docs/api.md) | HTTP endpoints |
+| [docs/dashboard.md](./docs/dashboard.md) | Every page, what it shows |
+| [docs/database.md](./docs/database.md) | Schema, migrations, cost units |
+| [docs/demo-mode.md](./docs/demo-mode.md) | Mock provider, seeding, demo names |
+| [docs/ci.md](./docs/ci.md) | GitHub Action + PR bot |
+| [docs/deployment.md](./docs/deployment.md) | Vercel + Neon setup |
+| [docs/contributing.md](./docs/contributing.md) | Local setup + house rules |
+
 ## Roadmap
 
 100 features across 13 sprints — see [`CLAUDE.md`](./CLAUDE.md) §7 for the

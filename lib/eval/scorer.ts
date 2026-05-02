@@ -1,3 +1,9 @@
+/**
+ * Inputs every scorer receives. `input` is the raw case input (before
+ * prompt rendering). `expected` is the case's reference answer if any.
+ * `output` is what the model actually produced. `metadata` is whatever
+ * the suite author attached to the case.
+ */
 export type ScoreContext = {
 	input: string
 	expected?: string
@@ -5,6 +11,12 @@ export type ScoreContext = {
 	metadata: Record<string, unknown>
 }
 
+/**
+ * Result of one scorer running against one case. `value` is normalized
+ * 0–1 (1 = perfect). `passed` is the binary verdict the runner uses for
+ * `result.passed`. `reason` shows up in the dashboard tooltip on failures.
+ * `costCents` is set by judges that call an LLM to score.
+ */
 export type Score = {
 	value: number
 	passed: boolean
@@ -12,6 +24,20 @@ export type Score = {
 	costCents?: number
 }
 
+/**
+ * Implement this to add a custom scorer. `name` is what shows up in the
+ * UI and the result's `scores[].scorer` field — make it stable.
+ *
+ * ```ts
+ * const lengthUnder100: Scorer = {
+ *   name: 'length-under-100',
+ *   async score({ output }) {
+ *     const ok = output.length < 100
+ *     return { value: ok ? 1 : 0, passed: ok, reason: ok ? undefined : `${output.length} chars` }
+ *   }
+ * }
+ * ```
+ */
 export type Scorer = {
 	name: string
 	score(ctx: ScoreContext): Promise<Score>
@@ -22,6 +48,11 @@ export type ExactOptions = {
 	trim?: boolean
 }
 
+/**
+ * Strict-equality scorer. Compares `output` to `expected` after optional
+ * trim/lowercase. Best for classification suites where the model is
+ * instructed to reply with a single word.
+ */
 export function exact(opts: ExactOptions = {}): Scorer {
 	const { ignoreCase = false, trim = true } = opts
 	return {
@@ -58,6 +89,11 @@ export type ContainsOptions = {
 	ignoreCase?: boolean
 }
 
+/**
+ * Substring-presence scorer. Passes when `substring` appears in the
+ * model's output. Use when the model is allowed to be verbose but must
+ * mention something specific.
+ */
 export function contains(opts: ContainsOptions): Scorer {
 	const { substring, ignoreCase = false } = opts
 	if (!substring) throw new Error('contains: substring is required')

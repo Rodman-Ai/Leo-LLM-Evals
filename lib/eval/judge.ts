@@ -9,11 +9,30 @@ const JudgeSchema = z.object({
 })
 
 export type LlmJudgeOptions = {
+	/** Plain-language criteria the judge applies. Stays in the prompt verbatim. */
 	rubric: string
+	/** Model id (e.g. `anthropic:claude-haiku-4-5`) used to do the scoring. Prefer cheap models. */
 	model: string
+	/** Pass cutoff applied to the judge's 0–1 score. Default 0.7. */
 	threshold?: number
 }
 
+/**
+ * LLM-as-judge scorer. Sends the case input + expected + output to a
+ * model with a structured-output schema (`{ score, reasoning }`) and
+ * compares the score to a threshold. Cost is captured per invocation.
+ *
+ * Caveats: single-judge scores are biased — for important leaderboards,
+ * prefer multi-judge consensus (Sprint 5 on the roadmap).
+ *
+ * ```ts
+ * llmJudge({
+ *   rubric: 'Does the answer correctly identify the bug in the diff?',
+ *   model: 'anthropic:claude-haiku-4-5',
+ *   threshold: 0.8,
+ * })
+ * ```
+ */
 export function llmJudge(opts: LlmJudgeOptions): Scorer {
 	const { rubric, model, threshold = 0.7 } = opts
 	if (!rubric) throw new Error('llmJudge: rubric is required')
