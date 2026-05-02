@@ -4,6 +4,7 @@ import { getLeaderboard } from '@/lib/db/queries'
 import { ModelTag } from '@/components/ModelTag'
 import { CostCell } from '@/components/CostCell'
 import { ScoreBar } from '@/components/ScoreBar'
+import { PassRateBars } from '@/components/charts/PassRateBars'
 import { formatDate, formatLatency, passTextClass } from '@/lib/format'
 
 export const revalidate = 3600
@@ -53,7 +54,18 @@ export default async function LeaderboardPage({ params }: { params: Params }) {
 			{data.entries.length === 0 ? (
 				<p className='text-sm text-muted-foreground'>No completed runs yet.</p>
 			) : (
-				<div className='overflow-hidden rounded-lg border border-border'>
+				<div className='space-y-4'>
+					<div className='rounded-lg border border-border bg-card p-4'>
+						<PassRateBars
+							data={data.entries.map((e) => ({
+								model: e.model,
+								rate: e.total ? e.passed / e.total : 0,
+								passed: e.passed,
+								total: e.total,
+							}))}
+						/>
+					</div>
+					<div className='overflow-hidden rounded-lg border border-border'>
 					<table className='w-full text-sm'>
 						<thead className='bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground'>
 							<tr>
@@ -100,6 +112,7 @@ export default async function LeaderboardPage({ params }: { params: Params }) {
 							})}
 						</tbody>
 					</table>
+				</div>
 				</div>
 			)}
 		</div>

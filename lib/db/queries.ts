@@ -100,6 +100,37 @@ export type RunResultRow = {
 	errorMessage: string | null
 }
 
+export type TimelineRunRow = {
+	runId: number
+	startedAt: Date
+	model: string
+	total: number
+	passed: number
+}
+
+export async function getSuiteTimeline(
+	suiteName: string,
+	limit = 100,
+): Promise<TimelineRunRow[]> {
+	const db = getDb()
+	const rows = await db
+		.select({
+			runId: schema.runs.id,
+			startedAt: schema.runs.startedAt,
+			model: schema.runs.model,
+			total: sql<number>`coalesce(count(${schema.results.id}), 0)::int`,
+			passed: sql<number>`coalesce(sum(case when ${schema.results.passed} then 1 else 0 end), 0)::int`,
+		})
+		.from(schema.runs)
+		.innerJoin(schema.suites, eq(schema.runs.suiteId, schema.suites.id))
+		.leftJoin(schema.results, eq(schema.results.runId, schema.runs.id))
+		.where(and(eq(schema.suites.name, suiteName), eq(schema.runs.status, 'complete')))
+		.groupBy(schema.runs.id)
+		.orderBy(schema.runs.startedAt)
+		.limit(limit)
+	return rows
+}
+
 export type LeaderboardEntry = {
 	model: string
 	runs: number

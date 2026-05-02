@@ -10,6 +10,12 @@ import type { SuiteDef, Case } from './suite'
 export type RunOptions = {
 	suite: SuiteDef
 	model: string
+	/**
+	 * Optional override: actually execute this model while persisting `model`.
+	 * Used by demo seeding to label runs with real provider names while
+	 * routing inference to the zero-cost mock provider.
+	 */
+	executeAs?: string
 	persist?: boolean
 	gitSha?: string
 	gitBranch?: string
@@ -49,6 +55,7 @@ export type RunSummary = {
 
 export async function runSuite(opts: RunOptions): Promise<RunSummary> {
 	const { suite, model } = opts
+	const executionModel = opts.executeAs ?? model
 	const persist = opts.persist ?? true
 	const concurrency = suite.concurrency ?? 5
 	const limit = pLimit(concurrency)
@@ -62,7 +69,7 @@ export async function runSuite(opts: RunOptions): Promise<RunSummary> {
 
 	const tasks = suite.cases.map((c, index) =>
 		limit(async () => {
-			const result = await runCase(c, suite, model)
+			const result = await runCase(c, suite, executionModel)
 			if (ctx) {
 				const testId = ctx.testIds[index]
 				await persistResult(ctx.runId, testId, result)

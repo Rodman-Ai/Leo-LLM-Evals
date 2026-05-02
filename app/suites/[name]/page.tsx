@@ -1,11 +1,30 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getLeaderboard, listRuns } from '@/lib/db/queries'
+import { getLeaderboard, getSuiteTimeline, listRuns, type TimelineRunRow } from '@/lib/db/queries'
 import { RunStatusBadge } from '@/components/RunStatusBadge'
 import { ModelTag } from '@/components/ModelTag'
 import { CostCell } from '@/components/CostCell'
 import { ScoreBar } from '@/components/ScoreBar'
+import { PassRateTimeline, type TimelinePoint } from '@/components/charts/PassRateTimeline'
 import { formatDate, formatLatency, passTextClass } from '@/lib/format'
+
+function buildTimelineData(rows: TimelineRunRow[]): { points: TimelinePoint[]; models: string[] } {
+	const models = Array.from(new Set(rows.map((r) => r.model))).sort()
+	const points: TimelinePoint[] = rows.map((r) => {
+		const point: TimelinePoint = {
+			startedAt: new Date(r.startedAt).toLocaleString(undefined, {
+				month: 'short',
+				day: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+			}),
+		}
+		for (const m of models) point[m] = null
+		point[r.model] = r.total ? r.passed / r.total : 0
+		return point
+	})
+	return { points, models }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -17,13 +36,19 @@ export default async function SuiteDetailPage({ params }: { params: Params }) {
 
 	let leaderboard: Awaited<ReturnType<typeof getLeaderboard>> = { suite: null, entries: [] }
 	let runs: Awaited<ReturnType<typeof listRuns>> = []
+	let timelineRows: TimelineRunRow[] = []
 	let error: string | null = null
 	try {
 		leaderboard = await getLeaderboard(decoded)
-		if (leaderboard.suite) runs = await listRuns({ suiteName: decoded, limit: 30 })
+		if (leaderboard.suite) {
+			runs = await listRuns({ suiteName: decoded, limit: 30 })
+			timelineRows = await getSuiteTimeline(decoded, 200)
+		}
 	} catch (err) {
 		error = err instanceof Error ? err.message : String(err)
 	}
+
+	const timeline = buildTimelineData(timelineRows)
 
 	if (error) {
 		return (
@@ -57,6 +82,13 @@ export default async function SuiteDetailPage({ params }: { params: Params }) {
 					<p className='max-w-2xl text-muted-foreground'>{leaderboard.suite.description}</p>
 				)}
 			</header>
+
+			<section className='space-y-3'>
+				<h2 className='text-lg font-medium'>Pass rate over time</h2>
+				<div className='rounded-lg border border-border bg-card p-4'>
+					<PassRateTimeline data={timeline.points} models={timeline.models} />
+				</div>
+			</section>
 
 			<section className='space-y-3'>
 				<h2 className='text-lg font-medium'>Latest by model</h2>

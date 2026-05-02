@@ -14,8 +14,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			<body className='min-h-screen antialiased'>
 				{demoMode && (
 					<div className='border-b border-border bg-yellow-500/10 px-6 py-2 text-center text-xs text-yellow-700 dark:text-yellow-300'>
-						Demo mode — runs are scored against synthetic <code>mock:*</code> models. No real
-						provider calls.
+						Demo mode — model outputs are deterministic synthetic data, not real provider
+						calls. Names are illustrative.
 					</div>
 				)}
 				<header className='border-b border-border'>

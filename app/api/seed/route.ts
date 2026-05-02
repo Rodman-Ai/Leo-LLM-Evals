@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { timingSafeEqual } from 'node:crypto'
+import { sql } from 'drizzle-orm'
 import { demoSeedAll } from '@/lib/eval/demo-seed'
+import { getDb, schema } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -26,11 +28,18 @@ export async function GET(request: Request) {
 		return NextResponse.json({ error: 'invalid token', code: 'unauthorized' }, { status: 401 })
 	}
 
+	const reset = url.searchParams.get('reset') === 'true'
+
 	try {
 		const startedAt = Date.now()
+		if (reset) {
+			const db = getDb()
+			await db.execute(sql`truncate ${schema.results}, ${schema.runs} restart identity`)
+		}
 		const summaries = await demoSeedAll({ triggeredBy: 'api-seed' })
 		return NextResponse.json({
 			ok: true,
+			reset,
 			elapsedMs: Date.now() - startedAt,
 			runs: summaries,
 		})
