@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { timingSafeEqual } from 'node:crypto'
 import { sql } from 'drizzle-orm'
 import { demoSeedAll } from '@/lib/eval/demo-seed'
+import { backfillCosts } from '@/lib/eval/cost-backfill'
 import { getDb, schema } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
@@ -29,9 +30,19 @@ export async function GET(request: Request) {
 	}
 
 	const reset = url.searchParams.get('reset') === 'true'
+	const backfill = url.searchParams.get('backfill')
 
 	try {
 		const startedAt = Date.now()
+		if (backfill === 'cost') {
+			const { updated } = await backfillCosts()
+			return NextResponse.json({
+				ok: true,
+				action: 'backfill-cost',
+				elapsedMs: Date.now() - startedAt,
+				updated,
+			})
+		}
 		if (reset) {
 			const db = getDb()
 			await db.execute(sql`truncate ${schema.results}, ${schema.runs} restart identity`)
