@@ -6,7 +6,8 @@
 | [writing-suites.md](./writing-suites.md) | Defining `*.eval.ts` files |
 | [scorers.md](./scorers.md) | Built-in scorers + writing custom ones |
 | [cli.md](./cli.md) | `pnpm eval` flags and exit codes |
-| [api.md](./api.md) | HTTP endpoints (currently `/api/seed`) |
+| [api.md](./api.md) | HTTP endpoints + Swagger UI |
+| [webhooks.md](./webhooks.md) | Outgoing webhook events, payloads, delivery contract |
 | [dashboard.md](./dashboard.md) | Every page, what it shows, how it queries |
 | [database.md](./database.md) | Drizzle schema, migrations, cost units |
 | [demo-mode.md](./demo-mode.md) | Mock provider, seeding, illustrative model names |
