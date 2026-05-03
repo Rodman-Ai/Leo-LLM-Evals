@@ -89,12 +89,22 @@ export const results = pgTable(
 		inputTokens: integer('input_tokens').notNull().default(0),
 		outputTokens: integer('output_tokens').notNull().default(0),
 		errorMessage: text('error_message'),
+		/**
+		 * Provenance: 'app' for results produced by runSuite() (CLI / GH
+		 * Action / api-seed), 'import' for results inserted via the CSV
+		 * import endpoint. Per-row so future merging of mixed sources is
+		 * possible. Defaults to 'app' so existing rows backfill safely.
+		 */
+		source: text('source', { enum: ['app', 'import'] }).notNull().default('app'),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	},
 	(t) => ({
 		runTestIdx: uniqueIndex('results_run_test_idx').on(t.runId, t.testId),
 	}),
 )
+
+export const RESULT_SOURCES = ['app', 'import'] as const
+export type ResultSource = (typeof RESULT_SOURCES)[number]
 
 export type Suite = typeof suites.$inferSelect
 export type Test = typeof tests.$inferSelect
