@@ -128,6 +128,30 @@ export type TopRunRow = {
 	startedAt: Date
 }
 
+export type LandingStats = {
+	totalRuns: number
+	totalCases: number
+	uniqueModels: number
+	totalCostCents: number
+	suiteCount: number
+}
+
+/** Single round-trip aggregate for the landing page hero stats. */
+export async function getLandingStats(): Promise<LandingStats> {
+	const db = getDb()
+	const [row] = await db
+		.select({
+			totalRuns: sql<number>`(select count(*)::int from ${schema.runs} where status = 'complete')`,
+			totalCases: sql<number>`(select count(*)::int from ${schema.results})`,
+			uniqueModels: sql<number>`(select count(distinct model)::int from ${schema.runs})`,
+			totalCostCents: sql<number>`(select coalesce(sum(cost_cents), 0)::int from ${schema.results})`,
+			suiteCount: sql<number>`(select count(*)::int from ${schema.suites})`,
+		})
+		.from(schema.suites)
+		.limit(1)
+	return row ?? { totalRuns: 0, totalCases: 0, uniqueModels: 0, totalCostCents: 0, suiteCount: 0 }
+}
+
 export async function getCostBreakdown(): Promise<{
 	totalCents: number
 	byDay: CostByDayRow[]

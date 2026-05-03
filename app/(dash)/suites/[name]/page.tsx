@@ -95,7 +95,7 @@ export default async function SuiteDetailPage({ params }: { params: Params }) {
 				{leaderboard.entries.length === 0 ? (
 					<p className='text-sm text-muted-foreground'>No completed runs yet.</p>
 				) : (
-					<div className='overflow-hidden rounded-lg border border-border'>
+					<div className='overflow-x-auto rounded-lg border border-border'>
 						<table className='w-full text-sm'>
 							<thead className='bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground'>
 								<tr>
@@ -145,7 +145,7 @@ export default async function SuiteDetailPage({ params }: { params: Params }) {
 				{runs.length === 0 ? (
 					<p className='text-sm text-muted-foreground'>No runs yet.</p>
 				) : (
-					<div className='overflow-hidden rounded-lg border border-border'>
+					<div className='overflow-x-auto rounded-lg border border-border'>
 						<table className='w-full text-sm'>
 							<thead className='bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground'>
 								<tr>

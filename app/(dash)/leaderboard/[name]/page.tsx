@@ -104,7 +104,7 @@ export default async function LeaderboardPage({ params }: { params: Params }) {
 							}))}
 						/>
 					</div>
-					<div className='overflow-hidden rounded-lg border border-border'>
+					<div className='overflow-x-auto rounded-lg border border-border'>
 					<table className='w-full text-sm'>
 						<thead className='bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground'>
 							<tr>
