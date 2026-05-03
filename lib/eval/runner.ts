@@ -9,7 +9,8 @@ import { dispatch } from '@/lib/webhooks/dispatch'
 import type { ScoreRecord } from '@/lib/db/schema'
 import type { SuiteDef, Case } from './suite'
 
-const SEED_TRIGGERS = new Set(['seed', 'api-seed'])
+/** Triggers that should NOT fire webhooks — backfills + imports, not real events. */
+const SKIP_WEBHOOK_TRIGGERS = new Set(['seed', 'api-seed', 'import'])
 
 function dashboardUrl(path: string): string | null {
 	const base = process.env.PUBLIC_DASHBOARD_URL ?? process.env.VERCEL_URL
@@ -125,7 +126,7 @@ async function fireWebhooks(
 	summary: RunSummary,
 	triggeredBy: string,
 ): Promise<void> {
-	if (SEED_TRIGGERS.has(triggeredBy)) return
+	if (SKIP_WEBHOOK_TRIGGERS.has(triggeredBy)) return
 	const passRate = summary.total ? summary.passed / summary.total : 0
 	const completedAt = new Date().toISOString()
 
