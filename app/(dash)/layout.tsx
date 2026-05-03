@@ -21,6 +21,7 @@ export default function DashLayout({ children }: { children: React.ReactNode }) 
 						<NavLink href='/suites'>Suites</NavLink>
 						<NavLink href='/runs'>Runs</NavLink>
 						<NavLink href='/costs'>Cost</NavLink>
+						<NavLink href='/import'>Import</NavLink>
 						<span className='mx-2 hidden h-4 w-px bg-border md:block' />
 						<NavLink href='/connections'>Connections</NavLink>
 						<NavLink href='/webhooks'>Webhooks</NavLink>
