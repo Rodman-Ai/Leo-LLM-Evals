@@ -10,6 +10,7 @@
 | [webhooks.md](./webhooks.md) | Outgoing webhook events, payloads, delivery contract |
 | [exports.md](./exports.md) | CSV download + Google Sheets / OneDrive exports + OAuth setup |
 | [imports.md](./imports.md) | CSV upload — `/import` page + `POST /api/import` |
+| [suites.md](./suites.md) | Suite create + JSON import (`/suites/new` + `POST /api/suites`) |
 | [dashboard.md](./dashboard.md) | Every page, what it shows, how it queries |
 | [database.md](./database.md) | Drizzle schema, migrations, cost units |
 | [demo-mode.md](./demo-mode.md) | Mock provider, seeding, illustrative model names |

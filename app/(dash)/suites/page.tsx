@@ -27,8 +27,32 @@ export default async function SuitesPage() {
 				description={
 					<>
 						Test suites discovered from{' '}
-						<code className='rounded bg-muted px-1'>tests/**/*.eval.ts</code> and persisted on first
-						run.
+						<code className='rounded bg-muted px-1'>tests/**/*.eval.ts</code>, persisted on
+						first run, or created manually.
+					</>
+				}
+				actions={
+					<>
+						<Link
+							href='/suites/new'
+							className='inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-sm font-semibold text-background shadow-sm transition-opacity hover:opacity-90'
+						>
+							<svg
+								width='12'
+								height='12'
+								viewBox='0 0 12 12'
+								fill='none'
+								aria-hidden='true'
+							>
+								<path
+									d='M6 2v8M2 6h8'
+									stroke='currentColor'
+									strokeWidth='1.6'
+									strokeLinecap='round'
+								/>
+							</svg>
+							New suite
+						</Link>
 					</>
 				}
 			/>
@@ -37,13 +61,22 @@ export default async function SuitesPage() {
 				<ErrorBlock message={error} />
 			) : suites.length === 0 ? (
 				<EmptyState
-					title='No suites recorded yet'
+					title='No suites yet'
 					description={
 						<>
-							Run <code className='rounded bg-muted px-1'>pnpm eval</code> locally, or hit the
-							seed endpoint at <code className='rounded bg-muted px-1'>/api/seed</code> to
-							populate this dashboard with synthetic data.
+							Click <strong>New suite</strong> to create one manually or import a JSON
+							definition. You can also run{' '}
+							<code className='rounded bg-muted px-1'>pnpm eval</code> locally — the suite
+							row will be created on first run.
 						</>
+					}
+					action={
+						<Link
+							href='/suites/new'
+							className='inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-sm font-semibold text-background hover:opacity-90'
+						>
+							New suite
+						</Link>
 					}
 				/>
 			) : (

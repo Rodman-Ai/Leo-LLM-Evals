@@ -68,6 +68,60 @@ export function getOpenApiSpec(origin: string) {
 						...errorResponses,
 					},
 				},
+				post: {
+					summary: 'Create or update a suite',
+					description:
+						'Upserts a suite by name. Optional `cases` populates the `tests` table; runs and results are NOT inserted. Idempotent — re-posting the same JSON updates description / tags and upserts cases by content hash.',
+					operationId: 'createSuite',
+					tags: ['Suites'],
+					requestBody: {
+						required: true,
+						content: {
+							'application/json': {
+								schema: { $ref: '#/components/schemas/SuiteDefinitionInput' },
+								example: {
+									name: 'my-suite',
+									description: 'short description',
+									tags: ['classification'],
+									cases: [{ input: 'Q1', expected: 'A1' }],
+								},
+							},
+						},
+					},
+					responses: {
+						'200': {
+							description: 'Suite created or updated',
+							content: {
+								'application/json': {
+									schema: {
+										type: 'object',
+										properties: {
+											suiteId: { type: 'integer' },
+											name: { type: 'string' },
+											casesInserted: { type: 'integer' },
+										},
+									},
+								},
+							},
+						},
+						...errorResponses,
+					},
+				},
+			},
+			'/api/suites/template.json': {
+				get: {
+					summary: 'Download a JSON template for suite import',
+					description:
+						'Pre-filled with three example cases. Re-uploadable as-is. The page at `/suites/new` links to this endpoint.',
+					operationId: 'downloadSuiteTemplate',
+					tags: ['Suites'],
+					responses: {
+						'200': {
+							description: 'The template JSON',
+							content: { 'application/json': { schema: { type: 'object' } } },
+						},
+					},
+				},
 			},
 			'/api/runs': {
 				get: {
@@ -466,6 +520,31 @@ export function getOpenApiSpec(origin: string) {
 						runCount: { type: 'integer' },
 						lastRunAt: { type: ['string', 'null'], format: 'date-time' },
 						latestPassRate: { type: ['number', 'null'] },
+					},
+				},
+				SuiteCaseInput: {
+					type: 'object',
+					required: ['input'],
+					properties: {
+						input: { type: 'string', minLength: 1 },
+						expected: { type: ['string', 'null'] },
+						tags: { type: 'array', items: { type: 'string' } },
+						metadata: { type: 'object' },
+					},
+				},
+				SuiteDefinitionInput: {
+					type: 'object',
+					required: ['name'],
+					properties: {
+						name: {
+							type: 'string',
+							minLength: 1,
+							maxLength: 120,
+							pattern: '^[a-zA-Z0-9][a-zA-Z0-9._-]*$',
+						},
+						description: { type: ['string', 'null'], maxLength: 2000 },
+						tags: { type: 'array', items: { type: 'string', maxLength: 64 }, maxItems: 20 },
+						cases: { type: 'array', items: { $ref: '#/components/schemas/SuiteCaseInput' } },
 					},
 				},
 				Suite: {

@@ -29,9 +29,17 @@ function buildTimelineData(rows: TimelineRunRow[]): { points: TimelinePoint[]; m
 export const dynamic = 'force-dynamic'
 
 type Params = Promise<{ name: string }>
+type SearchParams = Promise<{ created?: string; imported?: string }>
 
-export default async function SuiteDetailPage({ params }: { params: Params }) {
+export default async function SuiteDetailPage({
+	params,
+	searchParams,
+}: {
+	params: Params
+	searchParams: SearchParams
+}) {
 	const { name } = await params
+	const sp = await searchParams
 	const decoded = decodeURIComponent(name)
 
 	let leaderboard: Awaited<ReturnType<typeof getLeaderboard>> = { suite: null, entries: [] }
@@ -61,6 +69,13 @@ export default async function SuiteDetailPage({ params }: { params: Params }) {
 
 	return (
 		<div className='space-y-8'>
+			{(sp.created === '1' || sp.imported === '1') && (
+				<div className='rounded-lg border border-green-500/40 bg-green-500/10 px-4 py-2.5 text-sm text-green-700 dark:text-green-300'>
+					{sp.imported === '1'
+						? 'Suite imported. Cases populated; runs will appear once you execute them.'
+						: 'Suite created. Add cases by importing or running.'}
+				</div>
+			)}
 			<header className='space-y-2'>
 				<div className='text-sm text-muted-foreground'>
 					<Link href='/suites' className='hover:underline'>
