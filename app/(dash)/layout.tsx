@@ -24,6 +24,12 @@ export default function DashLayout({ children }: { children: React.ReactNode }) 
 					<Link href='/costs' className='text-muted-foreground hover:text-foreground'>
 						Cost
 					</Link>
+					<Link href='/webhooks' className='text-muted-foreground hover:text-foreground'>
+						Webhooks
+					</Link>
+					<Link href='/api-docs' className='text-muted-foreground hover:text-foreground'>
+						API
+					</Link>
 				</nav>
 			</header>
 			<main className='mx-auto max-w-6xl px-6 py-8'>{children}</main>
