@@ -154,6 +154,7 @@ locked table is in [`CLAUDE.md`](./CLAUDE.md) §2.
 | [docs/cli.md](./docs/cli.md) | `pnpm eval` reference |
 | [docs/api.md](./docs/api.md) | HTTP endpoints + Swagger UI |
 | [docs/webhooks.md](./docs/webhooks.md) | Outgoing webhooks (events, signing, retry) |
+| [docs/exports.md](./docs/exports.md) | CSV / Google Sheets / OneDrive exports + OAuth setup |
 | [docs/dashboard.md](./docs/dashboard.md) | Every page, what it shows |
 | [docs/database.md](./docs/database.md) | Schema, migrations, cost units |
 | [docs/demo-mode.md](./docs/demo-mode.md) | Mock provider, seeding, demo names |

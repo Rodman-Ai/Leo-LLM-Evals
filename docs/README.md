@@ -8,6 +8,7 @@
 | [cli.md](./cli.md) | `pnpm eval` flags and exit codes |
 | [api.md](./api.md) | HTTP endpoints + Swagger UI |
 | [webhooks.md](./webhooks.md) | Outgoing webhook events, payloads, delivery contract |
+| [exports.md](./exports.md) | CSV download + Google Sheets / OneDrive exports + OAuth setup |
 | [dashboard.md](./dashboard.md) | Every page, what it shows, how it queries |
 | [database.md](./database.md) | Drizzle schema, migrations, cost units |
 | [demo-mode.md](./demo-mode.md) | Mock provider, seeding, illustrative model names |
