@@ -27,6 +27,9 @@ export default function DashLayout({ children }: { children: React.ReactNode }) 
 					<Link href='/webhooks' className='text-muted-foreground hover:text-foreground'>
 						Webhooks
 					</Link>
+					<Link href='/connections' className='text-muted-foreground hover:text-foreground'>
+						Connections
+					</Link>
 					<Link href='/api-docs' className='text-muted-foreground hover:text-foreground'>
 						API
 					</Link>

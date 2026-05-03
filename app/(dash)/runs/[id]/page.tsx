@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getRun, getRunResults } from '@/lib/db/queries'
+import { getSession } from '@/lib/auth/session'
 import { RunStatusBadge } from '@/components/RunStatusBadge'
 import { ModelTag } from '@/components/ModelTag'
 import { CostCell } from '@/components/CostCell'
 import { ScoreBar } from '@/components/ScoreBar'
+import { ExportMenu } from '@/components/ExportMenu'
 import { formatDate, formatLatency, passTextClass } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
@@ -35,6 +37,8 @@ export default async function RunDetailPage({ params }: { params: Params }) {
 	}
 	if (!run) notFound()
 
+	const session = await getSession()
+
 	const total = results.length
 	const passed = results.filter((r) => r.passed).length
 	const rate = total ? passed / total : 0
@@ -55,6 +59,15 @@ export default async function RunDetailPage({ params }: { params: Params }) {
 					<h1 className='text-2xl font-semibold tracking-tight'>{run.suiteName}</h1>
 					<ModelTag model={run.model} />
 					<RunStatusBadge status={run.status} />
+					<div className='ml-auto'>
+						<ExportMenu
+							csvHref={`/api/runs/${run.id}/export.csv`}
+							googleSheetsPath={`/api/runs/${run.id}/export/google-sheets`}
+							onedrivePath={`/api/runs/${run.id}/export/onedrive`}
+							googleConnected={Boolean(session.google)}
+							microsoftConnected={Boolean(session.microsoft)}
+						/>
+					</div>
 				</div>
 
 				<dl className='grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-4'>

@@ -2,11 +2,13 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getLeaderboard } from '@/lib/db/queries'
+import { getSession } from '@/lib/auth/session'
 import { ModelTag } from '@/components/ModelTag'
 import { CostCell } from '@/components/CostCell'
 import { ScoreBar } from '@/components/ScoreBar'
 import { PassRateBars } from '@/components/charts/PassRateBars'
 import { EmbedSnippet } from '@/components/EmbedSnippet'
+import { ExportMenu } from '@/components/ExportMenu'
 import { formatDate, formatLatency, passTextClass } from '@/lib/format'
 
 export const revalidate = 3600
@@ -43,15 +45,27 @@ export default async function LeaderboardPage({ params }: { params: Params }) {
 	}
 	if (!data.suite) notFound()
 
+	const session = await getSession()
+	const encodedName = encodeURIComponent(data.suite.name)
+
 	return (
 		<div className='space-y-8'>
 			<header className='space-y-2'>
-				<div className='text-sm text-muted-foreground'>
-					<Link href='/suites' className='hover:underline'>
-						Suites
-					</Link>
-					<span className='mx-2'>/</span>
-					{data.suite.name}
+				<div className='flex items-center justify-between gap-3'>
+					<div className='text-sm text-muted-foreground'>
+						<Link href='/suites' className='hover:underline'>
+							Suites
+						</Link>
+						<span className='mx-2'>/</span>
+						{data.suite.name}
+					</div>
+					<ExportMenu
+						csvHref={`/api/leaderboard/${encodedName}/export.csv`}
+						googleSheetsPath={`/api/leaderboard/${encodedName}/export/google-sheets`}
+						onedrivePath={`/api/leaderboard/${encodedName}/export/onedrive`}
+						googleConnected={Boolean(session.google)}
+						microsoftConnected={Boolean(session.microsoft)}
+					/>
 				</div>
 				<h1 className='text-3xl font-semibold tracking-tight'>{data.suite.name} leaderboard</h1>
 				{data.suite.description && (
