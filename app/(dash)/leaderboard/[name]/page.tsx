@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getLeaderboard } from '@/lib/db/queries'
 import { getSession } from '@/lib/auth/session'
+import { readGoogleConfig } from '@/lib/auth/google'
+import { readMicrosoftConfig } from '@/lib/auth/microsoft'
 import { ModelTag } from '@/components/ModelTag'
 import { CostCell } from '@/components/CostCell'
 import { ScoreBar } from '@/components/ScoreBar'
@@ -10,6 +13,12 @@ import { PassRateBars } from '@/components/charts/PassRateBars'
 import { EmbedSnippet } from '@/components/EmbedSnippet'
 import { ExportMenu } from '@/components/ExportMenu'
 import { formatDate, formatLatency, passTextClass } from '@/lib/format'
+
+async function origin(): Promise<string> {
+	const h = await headers()
+	const proto = h.get('x-forwarded-proto') ?? 'http'
+	return `${proto}://${h.get('host') ?? 'localhost:3000'}`
+}
 
 export const revalidate = 3600
 
@@ -46,6 +55,9 @@ export default async function LeaderboardPage({ params }: { params: Params }) {
 	if (!data.suite) notFound()
 
 	const session = await getSession()
+	const o = await origin()
+	const googleConfigured = readGoogleConfig(o) !== null
+	const microsoftConfigured = readMicrosoftConfig(o) !== null
 	const encodedName = encodeURIComponent(data.suite.name)
 
 	return (
@@ -63,6 +75,8 @@ export default async function LeaderboardPage({ params }: { params: Params }) {
 						csvHref={`/api/leaderboard/${encodedName}/export.csv`}
 						googleSheetsPath={`/api/leaderboard/${encodedName}/export/google-sheets`}
 						onedrivePath={`/api/leaderboard/${encodedName}/export/onedrive`}
+						googleConfigured={googleConfigured}
+						microsoftConfigured={microsoftConfigured}
 						googleConnected={Boolean(session.google)}
 						microsoftConnected={Boolean(session.microsoft)}
 					/>

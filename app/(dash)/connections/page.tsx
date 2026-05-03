@@ -1,7 +1,8 @@
+import { headers } from 'next/headers'
 import { getSession } from '@/lib/auth/session'
 import { readGoogleConfig } from '@/lib/auth/google'
 import { readMicrosoftConfig } from '@/lib/auth/microsoft'
-import { headers } from 'next/headers'
+import { ProviderCard } from '@/components/ProviderCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,33 +36,33 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
 		<div className='space-y-6'>
 			<header className='space-y-2'>
 				<h1 className='text-3xl font-semibold tracking-tight'>Connections</h1>
-				<p className='text-muted-foreground'>
+				<p className='max-w-2xl text-muted-foreground'>
 					Connect your Google or Microsoft account to export run results to Google Sheets or
-					OneDrive (CSV opens natively in Excel). Tokens live in an HttpOnly cookie scoped to
-					this browser — disconnect by clearing cookies or using the disconnect button.
+					OneDrive. Tokens live only in an encrypted HttpOnly cookie scoped to this browser —
+					they never touch the database.
 				</p>
 			</header>
 
 			{sp.error && <FlashError message={mapErrorMessage(sp.error)} />}
-			{sp.connected && <FlashInfo message={`Connected ${sp.connected}.`} />}
-			{sp.disconnected && <FlashInfo message={`Disconnected ${sp.disconnected}.`} />}
+			{sp.connected && <FlashSuccess message={`Connected ${sp.connected}.`} />}
+			{sp.disconnected && <FlashSuccess message={`Disconnected ${sp.disconnected}.`} />}
 
 			<div className='grid gap-4 md:grid-cols-2'>
 				<ProviderCard
 					provider='google'
 					label='Google'
-					description='Export runs to Google Sheets in your Drive. Requested scope is drive.file (only files this app creates).'
+					description='Export runs as Google Sheets in your Drive.'
 					configured={googleConfigured}
 					accountEmail={session.google?.accountEmail}
-					connectedAt={session.google ? Math.min(session.google.expiresAt, Date.now()) : null}
+					connected={Boolean(session.google)}
 				/>
 				<ProviderCard
 					provider='microsoft'
 					label='Microsoft'
-					description='Upload run CSVs to OneDrive at /Evalbench/. CSV opens natively in Excel.'
+					description='Upload run CSVs to OneDrive (opens natively in Excel).'
 					configured={microsoftConfigured}
 					accountEmail={session.microsoft?.accountEmail}
-					connectedAt={session.microsoft ? Math.min(session.microsoft.expiresAt, Date.now()) : null}
+					connected={Boolean(session.microsoft)}
 				/>
 			</div>
 
@@ -73,15 +74,22 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
 					<p>
 						Each provider needs <code>*_OAUTH_CLIENT_ID</code> and{' '}
 						<code>*_OAUTH_CLIENT_SECRET</code> env vars in Vercel. Without them, the
-						&ldquo;Connect&rdquo; button shows a <em>not configured</em> state. See{' '}
-						<a href='https://github.com/Rodman-Ai/Leo-LLM-Evals/blob/main/docs/exports.md' className='underline'>
-							docs/exports.md
-						</a>{' '}
-						for setup instructions.
+						&ldquo;Connect&rdquo; button is replaced with a &ldquo;Learn how to enable&rdquo;
+						button explaining what each integration would do.
 					</p>
 					<p>
 						Tokens are encrypted with <code>SESSION_SECRET</code> via JWE-A256GCM and stored
-						in an HttpOnly + Secure + SameSite=Lax cookie. They never touch the database.
+						in an HttpOnly + Secure + SameSite=Lax cookie. Disconnecting clears the cookie.
+					</p>
+					<p>
+						Full setup steps in{' '}
+						<a
+							href='https://github.com/Rodman-Ai/Leo-LLM-Evals/blob/main/docs/exports.md'
+							className='underline'
+						>
+							docs/exports.md
+						</a>
+						.
 					</p>
 				</div>
 			</details>
@@ -89,84 +97,17 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
 	)
 }
 
-function ProviderCard({
-	provider,
-	label,
-	description,
-	configured,
-	accountEmail,
-	connectedAt,
-}: {
-	provider: 'google' | 'microsoft'
-	label: string
-	description: string
-	configured: boolean
-	accountEmail: string | undefined
-	connectedAt: number | null
-}) {
-	const isConnected = Boolean(accountEmail || connectedAt)
-	return (
-		<section className='rounded-lg border border-border bg-card p-5'>
-			<header className='mb-3'>
-				<h2 className='font-semibold'>{label}</h2>
-				<p className='mt-1 text-sm text-muted-foreground'>{description}</p>
-			</header>
-
-			{!configured ? (
-				<div className='space-y-2'>
-					<div className='inline-flex rounded bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-700 dark:text-yellow-300'>
-						Not configured on this deployment
-					</div>
-					<button
-						type='button'
-						disabled
-						className='block rounded border border-border bg-background px-3 py-1.5 text-sm font-medium opacity-50'
-					>
-						Connect {label} (demo)
-					</button>
-					<p className='text-xs text-muted-foreground'>
-						Set <code>{provider.toUpperCase()}_OAUTH_CLIENT_ID</code> and{' '}
-						<code>{provider.toUpperCase()}_OAUTH_CLIENT_SECRET</code> in Vercel env vars to
-						enable.
-					</p>
-				</div>
-			) : isConnected ? (
-				<div className='space-y-2'>
-					<div className='inline-flex rounded bg-green-500/10 px-2 py-0.5 text-xs text-green-700 dark:text-green-300'>
-						Connected{accountEmail ? ` as ${accountEmail}` : ''}
-					</div>
-					<form action={`/api/auth/${provider}/disconnect`} method='post'>
-						<button
-							type='submit'
-							className='rounded border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted'
-						>
-							Disconnect
-						</button>
-					</form>
-				</div>
-			) : (
-				<a
-					href={`/api/auth/${provider}`}
-					className='inline-block rounded border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted'
-				>
-					Connect {label}
-				</a>
-			)}
-		</section>
-	)
-}
-
 function FlashError({ message }: { message: string }) {
 	return (
-		<div className='rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-700 dark:text-red-300'>
+		<div className='rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm text-red-700 dark:text-red-300'>
 			{message}
 		</div>
 	)
 }
 
-function FlashInfo({ message }: { message: string }) {
+function FlashSuccess({ message }: { message: string }) {
 	return (
-		<div className='rounded-lg border border-green-500/40 bg-green-500/10 px-4 py-2 text-sm text-green-700 dark:text-green-300'>
+		<div className='rounded-lg border border-green-500/40 bg-green-500/10 px-4 py-2.5 text-sm text-green-700 dark:text-green-300'>
 			{message}
 		</div>
 	)

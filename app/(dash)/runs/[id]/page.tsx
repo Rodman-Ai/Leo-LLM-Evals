@@ -1,13 +1,22 @@
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getRun, getRunResults } from '@/lib/db/queries'
 import { getSession } from '@/lib/auth/session'
+import { readGoogleConfig } from '@/lib/auth/google'
+import { readMicrosoftConfig } from '@/lib/auth/microsoft'
 import { RunStatusBadge } from '@/components/RunStatusBadge'
 import { ModelTag } from '@/components/ModelTag'
 import { CostCell } from '@/components/CostCell'
 import { ScoreBar } from '@/components/ScoreBar'
 import { ExportMenu } from '@/components/ExportMenu'
 import { formatDate, formatLatency, passTextClass } from '@/lib/format'
+
+async function origin(): Promise<string> {
+	const h = await headers()
+	const proto = h.get('x-forwarded-proto') ?? 'http'
+	return `${proto}://${h.get('host') ?? 'localhost:3000'}`
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -38,6 +47,9 @@ export default async function RunDetailPage({ params }: { params: Params }) {
 	if (!run) notFound()
 
 	const session = await getSession()
+	const o = await origin()
+	const googleConfigured = readGoogleConfig(o) !== null
+	const microsoftConfigured = readMicrosoftConfig(o) !== null
 
 	const total = results.length
 	const passed = results.filter((r) => r.passed).length
@@ -64,6 +76,8 @@ export default async function RunDetailPage({ params }: { params: Params }) {
 							csvHref={`/api/runs/${run.id}/export.csv`}
 							googleSheetsPath={`/api/runs/${run.id}/export/google-sheets`}
 							onedrivePath={`/api/runs/${run.id}/export/onedrive`}
+							googleConfigured={googleConfigured}
+							microsoftConfigured={microsoftConfigured}
 							googleConnected={Boolean(session.google)}
 							microsoftConnected={Boolean(session.microsoft)}
 						/>
