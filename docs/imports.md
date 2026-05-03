@@ -24,6 +24,19 @@ prompt template + notes, choose a CSV file, click **Import CSV**. On
 success you land on `/runs/{newRunId}` with the `Imported` chip in the
 header and an `(I)` badge on every result row.
 
+The page has a **Template CSV** button and an inline
+&ldquo;Download a template&rdquo; link next to the file input — both
+download `evalbench-import-template.csv` with three example rows
+covering the simple case, a failing case with scorer reasoning, and a
+worst-case row with embedded commas / quotes / newlines so the file
+also doubles as a parser sanity check.
+
+The template is also available programmatically:
+
+```bash
+curl -O https://<your-host>/api/import/template.csv
+```
+
 ### Programmatically
 
 ```bash

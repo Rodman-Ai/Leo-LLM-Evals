@@ -81,7 +81,20 @@ export function ImportForm({ suites }: { suites: SuiteOption[] }) {
 
 			<Field
 				label='CSV file'
-				hint='Same column shape as /api/runs/{id}/export.csv. Required column: input. Up to 4 MB.'
+				hint={
+					<>
+						Same column shape as{' '}
+						<code className='rounded bg-muted px-1'>/api/runs/&#123;id&#125;/export.csv</code>.
+						Required column: <code className='rounded bg-muted px-1'>input</code>. Up to 4 MB.{' '}
+						<a
+							href='/api/import/template.csv'
+							download
+							className='underline hover:text-foreground'
+						>
+							Download a template →
+						</a>
+					</>
+				}
 			>
 				<input
 					type='file'
@@ -120,7 +133,7 @@ function Field({
 	children,
 }: {
 	label: string
-	hint?: string
+	hint?: React.ReactNode
 	children: React.ReactNode
 }) {
 	return (

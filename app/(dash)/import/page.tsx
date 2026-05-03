@@ -33,6 +33,30 @@ export default async function ImportPage() {
 						distinguishable from app-generated runs.
 					</>
 				}
+				actions={
+					<a
+						href='/api/import/template.csv'
+						download
+						className='inline-flex items-center gap-1.5 rounded border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted'
+					>
+						<svg
+							width='14'
+							height='14'
+							viewBox='0 0 14 14'
+							fill='none'
+							aria-hidden='true'
+						>
+							<path
+								d='M7 1.5v8m-3-3l3 3 3-3M2 12.5h10'
+								stroke='currentColor'
+								strokeWidth='1.5'
+								strokeLinecap='round'
+								strokeLinejoin='round'
+							/>
+						</svg>
+						Template CSV
+					</a>
+				}
 			/>
 
 			{error ? (

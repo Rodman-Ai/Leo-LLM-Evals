@@ -174,6 +174,25 @@ export function getOpenApiSpec(origin: string) {
 					},
 				},
 			},
+			'/api/import/template.csv': {
+				get: {
+					summary: 'Download a CSV template',
+					description:
+						'Pre-filled with three example rows (simple, failing, and a worst-case row with embedded commas / quotes / newlines). Re-uploadable as-is. The page at `/import` links to this endpoint.',
+					operationId: 'downloadImportTemplate',
+					tags: ['Imports'],
+					responses: {
+						'200': {
+							description: 'The template CSV',
+							content: {
+								'text/csv': {
+									schema: { type: 'string' },
+								},
+							},
+						},
+					},
+				},
+			},
 			'/api/import': {
 				post: {
 					summary: 'Import a CSV of eval results as a new run',
