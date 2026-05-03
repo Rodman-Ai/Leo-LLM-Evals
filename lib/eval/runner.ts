@@ -2,10 +2,21 @@ import { createHash } from 'node:crypto'
 import pLimit from 'p-limit'
 import { eq } from 'drizzle-orm'
 import { getDb, schema } from '@/lib/db'
+import { getPreviousRun } from '@/lib/db/queries'
 import { generate } from './provider'
 import { costCents } from './pricing'
+import { dispatch } from '@/lib/webhooks/dispatch'
 import type { ScoreRecord } from '@/lib/db/schema'
 import type { SuiteDef, Case } from './suite'
+
+const SEED_TRIGGERS = new Set(['seed', 'api-seed'])
+
+function dashboardUrl(path: string): string | null {
+	const base = process.env.PUBLIC_DASHBOARD_URL ?? process.env.VERCEL_URL
+	if (!base) return null
+	const normalized = base.startsWith('http') ? base : `https://${base}`
+	return `${normalized}${path}`
+}
 
 export type RunOptions = {
 	suite: SuiteDef
@@ -103,9 +114,63 @@ export async function runSuite(opts: RunOptions): Promise<RunSummary> {
 
 	if (ctx) {
 		await finalizeRun(ctx.runId, 'complete')
+		await fireWebhooks(ctx, summary, opts.triggeredBy ?? 'cli')
 	}
 	opts.onProgress?.({ kind: 'done', summary })
 	return summary
+}
+
+async function fireWebhooks(
+	ctx: PersistContext,
+	summary: RunSummary,
+	triggeredBy: string,
+): Promise<void> {
+	if (SEED_TRIGGERS.has(triggeredBy)) return
+	const passRate = summary.total ? summary.passed / summary.total : 0
+	const completedAt = new Date().toISOString()
+
+	const completedDispatch = dispatch(
+		'run.completed',
+		{
+			event: 'run.completed',
+			timestamp: completedAt,
+			runId: ctx.runId,
+			suiteName: summary.suiteName,
+			model: summary.model,
+			passed: summary.passed,
+			total: summary.total,
+			passRate,
+			costCents: summary.costCents,
+			avgLatencyMs: summary.avgLatencyMs,
+			dashboardUrl: dashboardUrl(`/runs/${ctx.runId}`),
+		},
+	).catch(() => undefined)
+
+	const previous = await getPreviousRun(ctx.suiteId, summary.model, ctx.runId).catch(() => null)
+	let regressionDispatch: Promise<unknown> = Promise.resolve()
+	if (previous && previous.total > 0) {
+		const previousRate = previous.passed / previous.total
+		const delta = passRate - previousRate
+		if (delta < 0) {
+			regressionDispatch = dispatch(
+				'regression.detected',
+				{
+					event: 'regression.detected',
+					timestamp: completedAt,
+					runId: ctx.runId,
+					suiteName: summary.suiteName,
+					model: summary.model,
+					currentPassRate: passRate,
+					previousPassRate: previousRate,
+					delta,
+					previousRunId: previous.id,
+					dashboardUrl: dashboardUrl(`/compare?a=${previous.id}&b=${ctx.runId}`),
+				},
+			).catch(() => undefined)
+		}
+	}
+
+	await Promise.allSettled([completedDispatch, regressionDispatch])
 }
 
 async function runCase(c: Case, suite: SuiteDef, model: string): Promise<CaseResult> {
@@ -178,6 +243,7 @@ async function runCase(c: Case, suite: SuiteDef, model: string): Promise<CaseRes
 
 type PersistContext = {
 	runId: number
+	suiteId: number
 	testIds: number[]
 }
 
@@ -245,7 +311,7 @@ async function initializePersistence(
 		})
 		.returning({ id: schema.runs.id })
 
-	return { runId: runRow.id, testIds }
+	return { runId: runRow.id, suiteId, testIds }
 }
 
 async function persistResult(runId: number, testId: number, r: CaseResult) {
