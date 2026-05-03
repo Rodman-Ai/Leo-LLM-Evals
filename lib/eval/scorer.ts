@@ -15,13 +15,16 @@ export type ScoreContext = {
  * Result of one scorer running against one case. `value` is normalized
  * 0–1 (1 = perfect). `passed` is the binary verdict the runner uses for
  * `result.passed`. `reason` shows up in the dashboard tooltip on failures.
- * `costCents` is set by judges that call an LLM to score.
+ * `costCents` and `judgeModel` are set by judges that call an LLM — the
+ * runner persists both onto the `ScoreRecord` and rolls `costCents` into
+ * the result row's total cost.
  */
 export type Score = {
 	value: number
 	passed: boolean
 	reason?: string
 	costCents?: number
+	judgeModel?: string
 }
 
 /**

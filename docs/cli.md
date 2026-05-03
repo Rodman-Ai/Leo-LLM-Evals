@@ -25,11 +25,13 @@ pnpm eval [--suite=<name>] [--model=<id>] [--no-db] [--json]
 
 | Code | Meaning                                                                |
 | ---- | ---------------------------------------------------------------------- |
-| `0`  | All runs complete, every case passed.                                  |
-| `1`  | Completed with one or more failing cases (the suite ran end-to-end).   |
+| `0`  | Default mode: all cases passed. **`--json` mode: any successful run completion**, regardless of pass/fail. |
+| `1`  | Default mode only: completed with one or more failing cases.           |
 | `2`  | Invocation error — bad suite name, missing env, malformed args.        |
 
-The GitHub Action treats `1` and `2` differently — see [ci.md](./ci.md).
+`--json` always exits `0` on completion so downstream tooling
+(`scripts/quality-gate.mjs`) can decide pass/fail from the NDJSON
+without the CLI failing the CI step prematurely. See [ci.md](./ci.md).
 
 ## Output
 

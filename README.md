@@ -67,8 +67,9 @@ and visit `https://<your-url>/api/seed?token=<that-token>`. The dashboard
 populates with synthetic data across 6 frontier-model placeholders. ~2 minutes
 end-to-end.
 
-For local: `pnpm install && pnpm eval --suite=toy --model=mock:smart --no-db`.
-Runs entirely offline.
+For local: `pnpm install && pnpm eval --suite=toy --model=mock:perfect --no-db`.
+Runs entirely offline; `mock:perfect` is the always-passes mock tier.
+Swap to `mock:smart` to see realistic ~90% accuracy with intentional misses.
 
 ## Quickstart (local with real models)
 

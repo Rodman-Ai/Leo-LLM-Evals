@@ -143,6 +143,8 @@ async function runCase(c: Case, suite: SuiteDef, model: string): Promise<CaseRes
 					value: s.value,
 					passed: s.passed,
 					reason: s.reason,
+					judgeModel: s.judgeModel,
+					judgeCostCents: s.costCents,
 				})
 			} catch (err) {
 				scores.push({
@@ -157,7 +159,8 @@ async function runCase(c: Case, suite: SuiteDef, model: string): Promise<CaseRes
 
 	const passed = errorMessage === null && scores.length > 0 && scores.every((s) => s.passed)
 
-	const cost = costCents(model, inputTokens, outputTokens)
+	const judgeCostTotal = scores.reduce((sum, s) => sum + (s.judgeCostCents ?? 0), 0)
+	const cost = costCents(model, inputTokens, outputTokens) + judgeCostTotal
 
 	return {
 		caseInput: c.input,

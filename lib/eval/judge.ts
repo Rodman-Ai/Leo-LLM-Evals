@@ -50,6 +50,7 @@ export function llmJudge(opts: LlmJudgeOptions): Scorer {
 				passed: score >= threshold,
 				reason: res.object.reasoning,
 				costCents: judgeCost,
+				judgeModel: model,
 			}
 		},
 	}

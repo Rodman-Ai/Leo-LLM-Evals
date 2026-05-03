@@ -212,9 +212,11 @@ export async function getSuiteTimeline(
 		.leftJoin(schema.results, eq(schema.results.runId, schema.runs.id))
 		.where(and(eq(schema.suites.name, suiteName), eq(schema.runs.status, 'complete')))
 		.groupBy(schema.runs.id)
-		.orderBy(schema.runs.startedAt)
+		.orderBy(desc(schema.runs.startedAt))
 		.limit(limit)
-	return rows
+	// Pulled newest-first so the limit retains the most recent runs;
+	// the chart still renders chronologically left-to-right.
+	return rows.reverse()
 }
 
 export type LeaderboardEntry = {

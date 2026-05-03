@@ -8,6 +8,13 @@
       "when": 1777758063862,
       "tag": "0000_faithful_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777825366961,
+      "tag": "0001_soft_speed_demon",
+      "breakpoints": true
     }
   ]
 }

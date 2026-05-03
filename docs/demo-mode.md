@@ -13,12 +13,13 @@ illustrative model names.
 
 ## Tiers
 
-| Mock id        | Accuracy | Latency range  | Notes                       |
-| -------------- | -------- | -------------- | --------------------------- |
-| `mock:smart`   | 0.90     | 400–1200 ms    | Stand-in for top-tier model |
-| `mock:medium`  | 0.75     | 200–800 ms     | Stand-in for mid-tier       |
-| `mock:weak`    | 0.55     | 120–500 ms     | Stand-in for cheap model    |
-| `mock:demo`    | 0.85     | 300–900 ms     | General-purpose default     |
+| Mock id        | Accuracy | Latency range  | Notes                                                    |
+| -------------- | -------- | -------------- | -------------------------------------------------------- |
+| `mock:perfect` | 1.00     | 200–600 ms     | Always returns the inferred ground truth (smoke tests).  |
+| `mock:smart`   | 0.90     | 400–1200 ms    | Stand-in for top-tier model.                             |
+| `mock:medium`  | 0.75     | 200–800 ms     | Stand-in for mid-tier.                                   |
+| `mock:weak`    | 0.55     | 120–500 ms     | Stand-in for cheap model.                                |
+| `mock:demo`    | 0.85     | 300–900 ms     | General-purpose default.                                 |
 
 Per-case correctness is deterministic: `sha256(model + prompt)` seeds an
 RNG, and the same prompt always produces the same output. Latency is

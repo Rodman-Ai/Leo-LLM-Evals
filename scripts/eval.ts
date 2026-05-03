@@ -162,6 +162,13 @@ async function main() {
 	}
 
 	const totalFailed = summaries.reduce((s, r) => s + r.failed, 0)
+	// In --json mode, runs that *completed* exit 0 regardless of failing
+	// cases. Downstream tools (quality-gate.mjs in CI) decide pass/fail
+	// based on the NDJSON. In TTY mode, exit 1 on any failing case so a
+	// developer iterating locally gets immediate red.
+	if (flags.json) {
+		process.exit(0)
+	}
 	process.exit(totalFailed === 0 ? 0 : 1)
 }
 

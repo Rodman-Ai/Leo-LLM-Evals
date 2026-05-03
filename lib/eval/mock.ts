@@ -8,6 +8,9 @@ type MockTier = {
 }
 
 const TIERS: Record<string, MockTier> = {
+	// Always returns the inferred ground truth — useful for README smoke
+	// tests where a non-zero exit on a casual try would feel broken.
+	'mock:perfect': { id: 'mock:perfect', accuracy: 1.0, noise: 0, latencyMs: [200, 600] },
 	'mock:smart': { id: 'mock:smart', accuracy: 0.9, noise: 0.05, latencyMs: [400, 1200] },
 	'mock:medium': { id: 'mock:medium', accuracy: 0.75, noise: 0.1, latencyMs: [200, 800] },
 	'mock:weak': { id: 'mock:weak', accuracy: 0.55, noise: 0.15, latencyMs: [120, 500] },

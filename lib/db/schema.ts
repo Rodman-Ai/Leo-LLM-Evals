@@ -1,6 +1,7 @@
 import {
 	pgTable,
 	bigserial,
+	bigint,
 	integer,
 	text,
 	jsonb,
@@ -22,7 +23,7 @@ export const tests = pgTable(
 	'tests',
 	{
 		id: bigserial('id', { mode: 'number' }).primaryKey(),
-		suiteId: integer('suite_id')
+		suiteId: bigint('suite_id', { mode: 'number' })
 			.notNull()
 			.references(() => suites.id, { onDelete: 'cascade' }),
 		contentHash: text('content_hash').notNull(),
@@ -40,7 +41,7 @@ export const runs = pgTable(
 	'runs',
 	{
 		id: bigserial('id', { mode: 'number' }).primaryKey(),
-		suiteId: integer('suite_id')
+		suiteId: bigint('suite_id', { mode: 'number' })
 			.notNull()
 			.references(() => suites.id),
 		model: text('model').notNull(),
@@ -74,10 +75,10 @@ export const results = pgTable(
 	'results',
 	{
 		id: bigserial('id', { mode: 'number' }).primaryKey(),
-		runId: integer('run_id')
+		runId: bigint('run_id', { mode: 'number' })
 			.notNull()
 			.references(() => runs.id, { onDelete: 'cascade' }),
-		testId: integer('test_id')
+		testId: bigint('test_id', { mode: 'number' })
 			.notNull()
 			.references(() => tests.id),
 		output: text('output'),
