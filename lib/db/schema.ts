@@ -100,3 +100,40 @@ export type Suite = typeof suites.$inferSelect
 export type Test = typeof tests.$inferSelect
 export type Run = typeof runs.$inferSelect
 export type Result = typeof results.$inferSelect
+
+export const WEBHOOK_EVENTS = ['run.completed', 'regression.detected'] as const
+export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number]
+
+export const webhooks = pgTable('webhooks', {
+	id: bigserial('id', { mode: 'number' }).primaryKey(),
+	event: text('event').notNull().unique(),
+	url: text('url'),
+	enabled: boolean('enabled').notNull().default(false),
+	secret: text('secret'),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const webhookDeliveries = pgTable(
+	'webhook_deliveries',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		webhookId: bigint('webhook_id', { mode: 'number' })
+			.notNull()
+			.references(() => webhooks.id, { onDelete: 'cascade' }),
+		event: text('event').notNull(),
+		payload: jsonb('payload').notNull(),
+		statusCode: integer('status_code'),
+		responseBody: text('response_body'),
+		succeeded: boolean('succeeded').notNull().default(false),
+		errorMessage: text('error_message'),
+		durationMs: integer('duration_ms'),
+		attemptedAt: timestamp('attempted_at', { withTimezone: true }).notNull().defaultNow(),
+	},
+	(t) => ({
+		byWebhook: index('webhook_deliveries_webhook_idx').on(t.webhookId, t.attemptedAt),
+	}),
+)
+
+export type Webhook = typeof webhooks.$inferSelect
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect

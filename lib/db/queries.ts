@@ -1,5 +1,121 @@
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, lt, sql } from 'drizzle-orm'
 import { getDb, schema } from '.'
+
+export type WebhookRow = typeof schema.webhooks.$inferSelect
+export type WebhookDeliveryRow = typeof schema.webhookDeliveries.$inferSelect
+
+export async function getWebhooks(): Promise<WebhookRow[]> {
+	const db = getDb()
+	return db.select().from(schema.webhooks).orderBy(schema.webhooks.event)
+}
+
+export async function getWebhook(event: string): Promise<WebhookRow | null> {
+	const db = getDb()
+	const [row] = await db.select().from(schema.webhooks).where(eq(schema.webhooks.event, event))
+	return row ?? null
+}
+
+export async function setWebhook(input: {
+	event: string
+	url: string | null
+	enabled: boolean
+	secret: string | null
+}): Promise<WebhookRow> {
+	const db = getDb()
+	const [row] = await db
+		.insert(schema.webhooks)
+		.values({
+			event: input.event,
+			url: input.url,
+			enabled: input.enabled,
+			secret: input.secret,
+		})
+		.onConflictDoUpdate({
+			target: schema.webhooks.event,
+			set: {
+				url: input.url,
+				enabled: input.enabled,
+				secret: input.secret,
+				updatedAt: new Date(),
+			},
+		})
+		.returning()
+	return row
+}
+
+export async function recordDelivery(input: {
+	webhookId: number
+	event: string
+	payload: unknown
+	statusCode: number | null
+	responseBody: string | null
+	succeeded: boolean
+	errorMessage: string | null
+	durationMs: number
+}): Promise<WebhookDeliveryRow> {
+	const db = getDb()
+	const [row] = await db
+		.insert(schema.webhookDeliveries)
+		.values({
+			webhookId: input.webhookId,
+			event: input.event,
+			payload: input.payload as Record<string, unknown>,
+			statusCode: input.statusCode,
+			responseBody: input.responseBody,
+			succeeded: input.succeeded,
+			errorMessage: input.errorMessage,
+			durationMs: input.durationMs,
+		})
+		.returning()
+	return row
+}
+
+export async function listDeliveries(opts: {
+	event?: string
+	limit?: number
+}): Promise<WebhookDeliveryRow[]> {
+	const db = getDb()
+	const limit = opts.limit ?? 20
+	return db
+		.select()
+		.from(schema.webhookDeliveries)
+		.where(opts.event ? eq(schema.webhookDeliveries.event, opts.event) : undefined)
+		.orderBy(desc(schema.webhookDeliveries.attemptedAt))
+		.limit(limit)
+}
+
+/**
+ * Most recent complete run for `(suiteId, model)` started strictly before
+ * `beforeRunId`. Used by the regression-detection webhook trigger to find
+ * the baseline to compare against.
+ */
+export async function getPreviousRun(
+	suiteId: number,
+	model: string,
+	beforeRunId: number,
+): Promise<{ id: number; passed: number; total: number } | null> {
+	const db = getDb()
+	const [row] = await db
+		.select({
+			id: schema.runs.id,
+			passed: sql<number>`coalesce(sum(case when ${schema.results.passed} then 1 else 0 end), 0)::int`,
+			total: sql<number>`coalesce(count(${schema.results.id}), 0)::int`,
+		})
+		.from(schema.runs)
+		.leftJoin(schema.results, eq(schema.results.runId, schema.runs.id))
+		.where(
+			and(
+				eq(schema.runs.suiteId, suiteId),
+				eq(schema.runs.model, model),
+				eq(schema.runs.status, 'complete'),
+				lt(schema.runs.id, beforeRunId),
+			),
+		)
+		.groupBy(schema.runs.id)
+		.orderBy(desc(schema.runs.id))
+		.limit(1)
+	return row ?? null
+}
 
 export type CostByDayRow = { day: string; costCents: number; runs: number }
 export type CostByModelRow = { model: string; costCents: number; runs: number }
