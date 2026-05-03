@@ -324,6 +324,7 @@ export type RunResultRow = {
 	outputTokens: number
 	scores: schema.ScoreRecord[]
 	errorMessage: string | null
+	source: schema.ResultSource
 }
 
 export type TimelineRunRow = {
@@ -584,6 +585,7 @@ export async function getRunResults(runId: number): Promise<RunResultRow[]> {
 			outputTokens: schema.results.outputTokens,
 			scores: schema.results.scores,
 			errorMessage: schema.results.errorMessage,
+			source: schema.results.source,
 		})
 		.from(schema.results)
 		.innerJoin(schema.tests, eq(schema.results.testId, schema.tests.id))

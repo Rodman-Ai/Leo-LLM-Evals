@@ -10,6 +10,7 @@ import { ModelTag } from '@/components/ModelTag'
 import { CostCell } from '@/components/CostCell'
 import { ScoreBar } from '@/components/ScoreBar'
 import { ExportMenu } from '@/components/ExportMenu'
+import { SourceBadge, ImportedChip } from '@/components/SourceBadge'
 import { formatDate, formatLatency, passTextClass } from '@/lib/format'
 
 async function origin(): Promise<string> {
@@ -56,6 +57,9 @@ export default async function RunDetailPage({ params }: { params: Params }) {
 	const rate = total ? passed / total : 0
 	const totalCost = results.reduce((s, r) => s + r.costCents, 0)
 	const avgLatency = total ? Math.round(results.reduce((s, r) => s + r.latencyMs, 0) / total) : 0
+	const isImported =
+		(run.triggeredBy === 'import') ||
+		(results.length > 0 && results.every((r) => r.source === 'import'))
 
 	return (
 		<div className='space-y-8'>
@@ -71,6 +75,7 @@ export default async function RunDetailPage({ params }: { params: Params }) {
 					<h1 className='text-2xl font-semibold tracking-tight'>{run.suiteName}</h1>
 					<ModelTag model={run.model} />
 					<RunStatusBadge status={run.status} />
+					{isImported && <ImportedChip />}
 					<div className='ml-auto'>
 						<ExportMenu
 							csvHref={`/api/runs/${run.id}/export.csv`}
@@ -138,6 +143,7 @@ export default async function RunDetailPage({ params }: { params: Params }) {
 							<thead className='bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground'>
 								<tr>
 									<th className='px-4 py-2'>Pass</th>
+									<th className='px-4 py-2'>Src</th>
 									<th className='px-4 py-2'>Input</th>
 									<th className='px-4 py-2'>Expected</th>
 									<th className='px-4 py-2'>Output</th>
@@ -160,6 +166,9 @@ export default async function RunDetailPage({ params }: { params: Params }) {
 												) : (
 													<span className='text-red-600 dark:text-red-400'>✗</span>
 												)}
+											</td>
+											<td className='px-4 py-3'>
+												<SourceBadge source={r.source} />
 											</td>
 											<td className='px-4 py-3 max-w-xs'>
 												<div className='truncate' title={r.input}>
