@@ -174,6 +174,55 @@ export function getOpenApiSpec(origin: string) {
 					},
 				},
 			},
+			'/api/import': {
+				post: {
+					summary: 'Import a CSV of eval results as a new run',
+					description:
+						'Multipart upload. Same column shape as the run-export CSV (`/api/runs/{id}/export.csv`) so import/export round-trips. Auto-creates the suite if missing. Inserted rows carry `source=import`. Skips webhooks (treated as a backfill, not an event).',
+					operationId: 'importCsv',
+					tags: ['Imports'],
+					requestBody: {
+						required: true,
+						content: {
+							'multipart/form-data': {
+								schema: {
+									type: 'object',
+									required: ['file', 'suite', 'model'],
+									properties: {
+										file: { type: 'string', format: 'binary', description: 'CSV file, max 4 MB.' },
+										suite: { type: 'string', example: 'imported' },
+										model: { type: 'string', example: 'custom:my-finetune' },
+										prompt: { type: 'string' },
+										notes: { type: 'string' },
+									},
+								},
+							},
+						},
+					},
+					responses: {
+						'200': {
+							description: 'Import succeeded',
+							content: {
+								'application/json': {
+									schema: {
+										type: 'object',
+										properties: {
+											runId: { type: 'integer' },
+											suiteId: { type: 'integer' },
+											suiteName: { type: 'string' },
+											model: { type: 'string' },
+											total: { type: 'integer' },
+											inserted: { type: 'integer' },
+											skipped: { type: 'integer' },
+										},
+									},
+								},
+							},
+						},
+						...errorResponses,
+					},
+				},
+			},
 			'/api/webhooks': {
 				get: {
 					summary: 'List configured webhooks',
@@ -457,6 +506,11 @@ export function getOpenApiSpec(origin: string) {
 						outputTokens: { type: 'integer' },
 						scores: { type: 'array', items: { type: 'object' } },
 						errorMessage: { type: ['string', 'null'] },
+						source: {
+							type: 'string',
+							enum: ['app', 'import'],
+							description: 'Provenance: app = produced by runSuite(); import = inserted via /api/import.',
+						},
 					},
 				},
 				LeaderboardEntry: {

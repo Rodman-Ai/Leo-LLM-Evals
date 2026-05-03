@@ -42,6 +42,7 @@ conventions.
 | ------ | --------------------- | --------------------------------------------------------------------------- |
 | GET    | `/api/seed`           | Token-gated demo seed / cost backfill. See [demo-mode.md](./demo-mode.md).  |
 | POST   | `/api/seed`           | Same as `GET`; either method works.                                          |
+| POST   | `/api/import`         | Multipart CSV upload — creates a new run with `source=import`. See [imports.md](./imports.md). |
 
 ## Interactive Swagger UI
 

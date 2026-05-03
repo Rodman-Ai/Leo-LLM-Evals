@@ -70,6 +70,7 @@ One row per (run × case).
 | `input_tokens`  | int         |                                                      |
 | `output_tokens` | int         |                                                      |
 | `error_message` | text        | Set when the provider call threw                     |
+| `source`        | text enum   | `app` \| `import`. Default `app`. See [imports.md](./imports.md). |
 | `created_at`    | timestamptz | Default `now()`                                      |
 | Unique idx      |             | `(run_id, test_id)`                                  |
 
